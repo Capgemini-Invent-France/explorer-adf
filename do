@@ -19,7 +19,7 @@ _fmt() {
 		black -q --check --diff "${ROOT}/adf" || retcode=$?
 	fi
 	flake8 "${ROOT}/adf" || retcode=$?
-	[ "$retcode" -eq 0 ] && echo "Great, all scripts are clean !"
+	[ "$retcode" -eq 0 ] && echo "Great, all is ok !"
 	return "$retcode"
 }
 

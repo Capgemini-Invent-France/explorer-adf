@@ -1,4 +1,5 @@
 import json
+import tempfile
 from pathlib import Path
 
 import typer
@@ -10,32 +11,38 @@ app = typer.Typer()
 
 @app.command("draw")
 def draw(
-    out: Path,
-    root: Path = typer.Argument(None, envvar="ADF_ROOT"),
+    dot: Path = None,
+    root: Path = typer.Option(None, envvar="ADF_ROOT"),
 ):
     if root is None:
-        typer.echo("The root argument is mandatory")
+        typer.echo("The root parameter is mandatory")
         raise typer.Exit(code=1)
     if not root.exists():
-        typer.echo("The root argument does not exist")
+        typer.echo("The root parameter does not exist")
         raise typer.Exit(code=1)
     for p in (root / "pipeline").glob("*.json"):
         Activity.load(p)
     Node.resolve_all()
-    g = Node.draw_all(out)
-    g.view()
+    if dot is not None:
+        g = Node.draw_all(dot)
+        g.view()
+    else:
+        dirname = tempfile.mkdtemp(prefix="adf")
+        dot = Path(dirname) / "pipeline.dot"
+        g = Node.draw_all(dot)
+        g.view()
 
 
 @app.command("list")
 def list(
     pattern: str = typer.Argument(None),
-    root: Path = typer.Argument(None, envvar="ADF_ROOT"),
+    root: Path = typer.Option(None, envvar="ADF_ROOT"),
 ):
     if root is None:
-        typer.echo("The root argument is mandatory")
+        typer.echo("The root parameter is mandatory")
         raise typer.Exit(code=1)
     if not root.exists():
-        typer.echo("The root argument does not exist")
+        typer.echo("The root parameter does not exist")
         raise typer.Exit(code=1)
     for p in (root / "pipeline").glob("*.json"):
         Activity.load(p)
@@ -56,13 +63,13 @@ def list(
 def find(
     type: str = None,
     name: str = None,
-    root: Path = typer.Argument(None, envvar="ADF_ROOT"),
+    root: Path = typer.Option(None, envvar="ADF_ROOT"),
 ):
     if root is None:
-        typer.echo("The root argument is mandatory")
+        typer.echo("The root parameter is mandatory")
         raise typer.Exit(code=1)
     if not root.exists():
-        typer.echo("The root argument does not exist")
+        typer.echo("The root parameter does not exist")
         raise typer.Exit(code=1)
     for p in (root / "pipeline").glob("*.json"):
         Activity.load(p)
