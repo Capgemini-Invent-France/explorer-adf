@@ -7,8 +7,12 @@ _nodes = {}
 
 
 class Node:
-    defaultType = None
+    rootType = None
     shape = (None,)
+
+    @classmethod
+    def default_kls(cls):
+        return None
 
     def __init_subclass__(cls, /, dfType=None, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -16,7 +20,7 @@ class Node:
             _types[dfType] = cls
 
     def __new__(cls, type, **kwargs):
-        return super().__new__(_types[type])
+        return super().__new__(_types.get(type, cls.default_kls()))
 
     def __init__(self, file, type, name):
         self.file = file
@@ -33,7 +37,7 @@ class Node:
     def load(cls, path):
         with path.open("r") as f:
             data = json.load(f)
-        type = data.pop("type", cls.defaultType)
+        type = data.pop("type", cls.rootType)
         typeProperties = data.pop("properties")
         Node(type=type, file=path.stem, typeProperties=typeProperties, **data)
 

@@ -2,7 +2,11 @@ from adf.node.node import Node
 
 
 class Activity(Node):
-    defaultType = "Microsoft.DataFactory/factories/pipelines"
+    rootType = "Microsoft.DataFactory/factories/pipelines"
+
+    @classmethod
+    def default_kls(cls):
+        return DefaultActivity
 
     def __init__(
         self,
@@ -38,7 +42,9 @@ class Activity(Node):
         self.props = kwargs
 
     def sibling(self, name):
-        (node,) = Activity.filter(lambda n: n.file == self.file and n.name == name)
+        (node,) = Activity.filter(
+            lambda n: n.file == self.file and n.type != self.rootType and n.name == name
+        )
         return node
 
     def resolve(self):
@@ -47,7 +53,10 @@ class Activity(Node):
         self.depsAny = [self.sibling(name) for name in self.depsAny]
 
     def key(self):
-        return f"{self.file}-{self.name}"
+        if self.type == self.rootType:
+            return f"{self.file}-root"
+        else:
+            return f"{self.file}-{self.name}"
 
     def link_deps(self, g):
         for dep in self.depsOK:
@@ -86,3 +95,7 @@ class Activity(Node):
             "policy": self.policy,
             "props": self.props,
         }
+
+
+class DefaultActivity(Activity):
+    pass

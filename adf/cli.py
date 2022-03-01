@@ -9,11 +9,7 @@ from adf import Activity, Node
 app = typer.Typer()
 
 
-@app.command("draw")
-def draw(
-    dot: Path = None,
-    root: Path = typer.Option(None, envvar="ADF_ROOT"),
-):
+def load_all(root):
     if root is None:
         typer.echo("The root parameter is mandatory")
         raise typer.Exit(code=1)
@@ -23,6 +19,15 @@ def draw(
     for p in (root / "pipeline").glob("*.json"):
         Activity.load(p)
     Node.resolve_all()
+
+
+@app.command("draw")
+def draw(
+    dot: Path = None,
+    root: Path = typer.Option(None, envvar="ADF_ROOT"),
+):
+    load_all(root)
+
     if dot is not None:
         g = Node.draw_all(dot)
         g.view()
@@ -38,15 +43,8 @@ def list(
     pattern: str = typer.Argument(None),
     root: Path = typer.Option(None, envvar="ADF_ROOT"),
 ):
-    if root is None:
-        typer.echo("The root parameter is mandatory")
-        raise typer.Exit(code=1)
-    if not root.exists():
-        typer.echo("The root parameter does not exist")
-        raise typer.Exit(code=1)
-    for p in (root / "pipeline").glob("*.json"):
-        Activity.load(p)
-    Node.resolve_all()
+    load_all(root)
+
     if pattern is not None:
         pattern = pattern.lower()
 
@@ -65,15 +63,7 @@ def find(
     name: str = None,
     root: Path = typer.Option(None, envvar="ADF_ROOT"),
 ):
-    if root is None:
-        typer.echo("The root parameter is mandatory")
-        raise typer.Exit(code=1)
-    if not root.exists():
-        typer.echo("The root parameter does not exist")
-        raise typer.Exit(code=1)
-    for p in (root / "pipeline").glob("*.json"):
-        Activity.load(p)
-    Node.resolve_all()
+    load_all(root)
 
     def fil(node):
         if name and (name.lower() not in node.name.lower()):
